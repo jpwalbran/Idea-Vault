@@ -10,46 +10,57 @@ import SwiftData
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query private var items: [Item]
+    @Query private var projects: [Project]
 
     var body: some View {
         NavigationSplitView {
-            List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.createdDate)")
-                    } label: {
-                        Text(item.title)
+
+            VStack {
+                ProjectCreateView()
+                ScrollView(.vertical){
+                    LazyVStack {
+                        ForEach(projects) { proj in
+                            NavigationLink{
+                                Text(proj.title)
+                                Text("Created On: \(proj.createdDate)")
+                            } label: {
+                                Text(proj.title)
+                            }
+                        }
+                        .onDelete(perform: deleteProjects)
                     }
                 }
-                .onDelete(perform: deleteItems)
-            }
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
-                }
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
+                .toolbar {
+                    ToolbarItem {
+                        Button(action: addItem) {
+                            Label("Add Item", systemImage: "plus")
+                        }
                     }
                 }
             }
-        } detail: {
-            Text("Select an item")
+        }
+        detail: {
+                Text("Select an item")
         }
     }
 
     private func addItem() {
         withAnimation {
-            let newItem = Item(lastUpdate: Date(), created: Date(), title: "New Item")
-            modelContext.insert(newItem)
+            let newProj = Project(pTitle: "Test Decoy Project", pCreated: Date(), pUpdated: Date())
+            modelContext.insert(newProj)
         }
     }
+    //private func addItem() {
+    //    withAnimation {
+    //        let newItem = Item(lastUpdate: Date(), created: Date(), title: "New Item")
+    //        modelContext.insert(newItem)
+    //    }
+    //}
 
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
+    private func deleteProjects(offsets: IndexSet) {
+       withAnimation {
             for index in offsets {
-                modelContext.delete(items[index])
+                modelContext.delete(projects[index])
             }
         }
     }
@@ -57,5 +68,5 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
-        .modelContainer(for: Item.self, inMemory: true)
+        .modelContainer(for: Project.self, inMemory: true)
 }
